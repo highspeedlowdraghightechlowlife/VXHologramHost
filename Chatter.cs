@@ -38,7 +38,7 @@ public class Chatter : MonoBehaviour
 
     public static void CallPromptAI(string userInput, string character, MonoBehaviour caller, Action<string> callback)
     {
-        caller.StartCoroutine(PromptAI(userInput, caller, callback));
+        caller.StartCoroutine(PromptAI(userInput, character, callback));
     }
 
     // Harcoded for testing 
