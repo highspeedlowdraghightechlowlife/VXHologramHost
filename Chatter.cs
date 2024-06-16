@@ -1,14 +1,12 @@
-//  Vladislava Simakov
 using UnityEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine.Networking;
+using System.Net.Http;
 using SimpleJSON;
 using System.IO;
-using System.Net.Http;
-using UnityEngine.TextCore.Text;
 
 public class Chatter : MonoBehaviour
 {
@@ -36,20 +34,12 @@ public class Chatter : MonoBehaviour
         public List<Message> messages;
     }
 
+    // Public static method to be called from another class
     public static void CallPromptAI(string userInput, string character, MonoBehaviour caller, Action<string> callback)
     {
-        caller.StartCoroutine(PromptAI(userInput, caller, callback));
+        caller.StartCoroutine(PromptAI(userInput, character, callback));
     }
 
-    // Harcoded for testing 
-
-  /*  private static IEnumerator PromptAI(string userInput, MonoBehaviour caller, Action<string> callback)
-    {
-        assistantMessage = "They are to the right";
-        yield return null;
-        callback?.Invoke(assistantMessage);
-    }
-*/
     private static IEnumerator PromptAI(string userInput, string character, Action<string> callback)
     {
         // Construct the message for the user input
@@ -97,9 +87,9 @@ public class Chatter : MonoBehaviour
 
     private static string ParseResponse(string jsonResponse)
     {
-        // LLMResponse responseData = JsonUtility.FromJson<LLMResponse>(jsonResponse);
+       // LLMResponse responseData = JsonUtility.FromJson<LLMResponse>(jsonResponse);
         Debug.Log("Reading response stream...");
-        // var rawResponse = await streamReader.ReadToEndAsync();  // Read the entire response as a string
+       // var rawResponse = await streamReader.ReadToEndAsync();  // Read the entire response as a string
         Debug.Log($"Raw server response: {jsonResponse}");  // Log the raw response
         JSONNode root1 = JSON.Parse(jsonResponse);
         JSONNode visible = root1["results"][0]["history"]["visible"];
