@@ -7,6 +7,7 @@ using Microsoft.CognitiveServices.Speech;
 using UnityEngine.Rendering;
 using WebSocketSharp;
 using System.Collections;
+using System.Collections.Generic;
 using System.Reflection;
 using UniVRM10;
 using Unity.VisualScripting;
@@ -18,6 +19,11 @@ public class NPC : MonoBehaviour
     public Animator animator;
     public Text output_text;
     public Vector3 avator_posi;
+    private float _timeUntilBored;
+    private int _numberOfBoredAnimations;
+    private bool _isBored;
+    private float _idleTime;
+    private int _boredAnimation;
 
     public enum Direction
     {
@@ -30,7 +36,10 @@ public class NPC : MonoBehaviour
     private void Start()
     {
         // replace this with your key 
-        speechConfig = SpeechConfig.FromSubscription(Key.subscriptionKey, Key.region);
+        string subscriptionKey = Key.subscriptionKey;
+        string region = Key.region;
+
+        speechConfig = SpeechConfig.FromSubscription(subscriptionKey, region);
         speechConfig.SpeechSynthesisVoiceName = "en-US-AriaNeural";
         speechConfig.SetSpeechSynthesisOutputFormat(SpeechSynthesisOutputFormat.Raw24Khz16BitMonoPcm);
 
@@ -39,12 +48,52 @@ public class NPC : MonoBehaviour
         animator = GetComponent<Animator>();
 
         avator_posi = new Vector3(0, 0, 0);
+        _boredAnimation = UnityEngine.Random.Range(1, 3 + 1);
+        _boredAnimation = _boredAnimation * 2 - 1;
+        //animator.SetFloat("BoredIdle", 0);
+        animator.SetFloat("BoredIdle", 1.46f);
     }
 
     public void Destroy()
     {
         Destroy(gameObject);
     }
+/*
+    public override void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo)
+    {
+        ResetIdle();
+    }
+
+    // OnStateUpdate is called on each Update frame between OnStateEnter and OnStateExit callbacks
+    override public void OnStateUpdate(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
+    {
+        if (_isBored == false)
+        {
+            _idleTime += Time.deltaTime;
+
+            if (_idleTime > _timeUntilBored && stateInfo.normalizedTime % 1 < 0.02f)
+            {
+                _isBored = true;
+                _boredAnimation = UnityEngine.Random.Range(1, _numberOfBoredAnimations + 1);
+                _boredAnimation = _boredAnimation * 2 - 1;
+                animator.SetFloat("BoredIdle", _boredAnimation - 1);
+            }
+        }
+        animator.SetFloat("BoredIdle", _boredAnimation, 0.2f, Time.deltaTime);
+    }
+
+    private void ResetIdle()
+    {
+        if (_isBored)
+        {
+            _boredAnimation--;
+        }
+
+        _isBored = false;
+        _idleTime = 0;
+    }
+
+*/
 
     public void ReadResult(ConversationResult res)
     {
@@ -59,17 +108,59 @@ public class NPC : MonoBehaviour
             // Loop through all the entities
             foreach (var entity in res.result.prediction.entities)
             {
-
-                    if (entity.category == "Greeting")
-                    {
-                        response = "Hi, welcome!";
-                        animator.SetTrigger("WaveTrigger");
-                        StartCoroutine(UpdateOutputText(response));
-                        HelloWorld.Instance.SynthesizeSpeech(response);                  
-
+                //why is RMIT a good uni?
+                if (entity.category == "Greeting")
+                {
+                    //response = "Hi, welcome!";
+                    response = "Hi, welcome to the school of computing technologies at R-M-I-T, a global university of research, enterprise and innovataion.";
+                    animator.SetTrigger("WaveTrigger");
+                    StartCoroutine(UpdateOutputText(response));
+                    HelloWorld.Instance.SynthesizeSpeech(response);
+                    animator.SetFloat("BoredIdle", 1);
+                break;
+                }
+                else if (entity.category == "Research")
+                {
+                    response = "";
+                    StartCoroutine(UpdateOutputText(response));
+                    HelloWorld.Instance.SynthesizeSpeech(response);
+                    string trigger = "IsTalking" + getRandomTrigger(1);
+                    string trigger1 = trigger;
+                    animator.SetTrigger(trigger1);
                     break;
-                    }
-                    else if (entity.category == "Management")
+                }
+                else if (entity.category == "Facilities")
+                {
+                    response = "R-M-I-T has cutting edge facilities for supercomputing, robotics, cyber security, AI, and virtual reality.";
+                    StartCoroutine(UpdateOutputText(response));
+                    HelloWorld.Instance.SynthesizeSpeech(response);
+                    string trigger = "IsTalking" + getRandomTrigger(1);
+                    string trigger1 = trigger;
+                    animator.SetTrigger(trigger1);
+                    break;
+                }
+                else if (entity.category == "School")
+                {
+                    response = "The school of computing technologies has three main areas- cyber secutiry, artificial intelligence, and interaction and techology.";
+                    StartCoroutine(UpdateOutputText(response));
+                    HelloWorld.Instance.SynthesizeSpeech(response);
+                    string trigger = "IsTalking" + getRandomTrigger(1);
+                    string trigger1 = trigger;
+                    animator.SetTrigger(trigger1);
+                    break;
+                }
+                else if (entity.category == "Robots")
+                {
+                    response = "Robotics is one of the main research interests of this lab, and we have several robots here. Rosie, the two-armed swordfighting robot, and Tiago which has an extendable torso and a manipulator arm . We also have an industrial robot arm.";
+                    StartCoroutine(UpdateOutputText(response));
+                    HelloWorld.Instance.SynthesizeSpeech(response);
+                    string trigger = "IsTalking" + getRandomTrigger(1);
+                    string trigger1 = trigger;
+                    animator.SetTrigger(trigger1);
+                    break;
+                }
+
+                else if (entity.category == "Management")
                     {
                         response = "Please contact Dr Ian Peake, lab manager, for all booking and access enquiries.";
                         StartCoroutine(UpdateOutputText(response));
@@ -83,6 +174,7 @@ public class NPC : MonoBehaviour
                         StartCoroutine(UpdateOutputText(response));
                         HelloWorld.Instance.SynthesizeSpeech(response);
                         animator.SetTrigger("Offer");
+                        animator.SetFloat("BoredIdle", 3);
                     break;
                     }
                     else if (entity.category == "Staff")
@@ -102,16 +194,7 @@ public class NPC : MonoBehaviour
                     animator.SetTrigger(trigger1);
                     break;
                     }
-                    else if (entity.category == "Robots")
-                    {
-                        response = "Robotics is one of the main research interests of this lab, and we have several robots here. Rosie, the two-armed swordfighting robot, and Tiago which has an extendable torso and a manipulator arm . We also have an industrial robot arm.";
-                    StartCoroutine(UpdateOutputText(response));
-                        HelloWorld.Instance.SynthesizeSpeech(response);
-                        string trigger = "IsTalking" + getRandomTrigger(1);
-                        string trigger1 = trigger;
-                        animator.SetTrigger(trigger1);
-                        break;
-                    }
+
                     else if (entity.category == "NOVA ball")
                     {
                         response = "The NOVA motion simulator is a virtual vehicle, combining virtual reality with unlimited motion. It has a three hundred and sixty degree range of motion and is used for flight and racing simulation.";
@@ -417,9 +500,46 @@ public class NPC : MonoBehaviour
                 #endregion
             }
         }
+        else if (res != null && res.result.prediction.topIntent == "Tell me")
+        {
+            response = "Lalalala";
+            StartCoroutine(UpdateOutputText(response));
+            HelloWorld.Instance.SynthesizeSpeech(response);
+        }
+
         else
         {
+            StartCoroutine(UpdateOutputText(response));
+            HelloWorld.Instance.SynthesizeSpeech(response);
+            Debug.LogError("here");
             Debug.Log(response);
+        }
+    }
+
+    //added these
+    public void ReadAIResult(string airesponse, ConversationResult res)
+    {
+        Debug.Log("read result has been called");
+        animator.SetBool("IsTalking", false);
+
+        if (res.result.prediction.topIntent == "TellMe")
+        {
+            animator.SetTrigger("IsTalking0");
+            HelloWorld.Instance.SynthesizeSpeech(airesponse);
+
+        }
+        else if (res.result.prediction.topIntent == "Location")
+        {
+            animator.SetTrigger("IsTalking1");
+            HelloWorld.Instance.SynthesizeSpeech(airesponse);
+
+        }
+        else
+        {
+            Debug.Log(airesponse);
+            animator.SetTrigger("IsTalking0");
+            StartCoroutine(UpdateOutputText(airesponse));
+            HelloWorld.Instance.SynthesizeSpeech(airesponse);
         }
     }
 
@@ -428,6 +548,10 @@ public class NPC : MonoBehaviour
         output_text.text = message;
         yield return null;
     }
+    //added ai read result
+
+
+
 
     //choose a random talking animation for naturalistic motion
     public string getRandomTrigger(int option)
@@ -445,9 +569,6 @@ public class NPC : MonoBehaviour
         return idx;
 
     }
-
-
-
 
     void getDirection(string directionText)
     {

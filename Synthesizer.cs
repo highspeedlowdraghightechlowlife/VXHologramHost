@@ -16,8 +16,8 @@ public class HelloWorld : MonoBehaviour
     public AudioSource audioSource;
 
     // Replace with your own subscription key and service region (e.g., "westus").
-    private const string SubscriptionKey = "64d5a2226a944474bde0e9b51b7ce5c5";
-    private const string Region = "eastus";
+    string SubscriptionKey = Key.subscriptionKey;
+    string Region = Key.region;
     private const int SampleRate = 24000;
 
     private object threadLocker = new object();

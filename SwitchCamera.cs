@@ -14,23 +14,42 @@ public class SwitchCamera : MonoBehaviour
     public NPC large_NPC;
     public int Manager;
     public ManagerTestScript my_manager;
-    //public Dropdown cameraDropdown;
+
     public TMP_Dropdown cameraDropdown;
     public Button confirmButton;
+    public Button basicButton;
+    public Button smartButton;
     private int selectedCamera;
+    [SerializeField]  public int selectedVersion;
 
     void Start()
     {
         // Add listener for the Dropdown value change
         cameraDropdown.onValueChanged.AddListener(delegate { DropdownValueChanged(cameraDropdown); });
+
+        basicButton.onClick.AddListener(() => setAssistantType(0));
+        smartButton.onClick.AddListener(() => setAssistantType(1));
         // Add listener for the Button click
         confirmButton.onClick.AddListener(ChangeCamera);
     }
-
+        
     void DropdownValueChanged(TMP_Dropdown change)
     {
         selectedCamera = change.value;
-        output_text.text = (change.value == 0) ? "Looking Glass 32-Inch Display" : "Looking Glass 60-Inch Display";
+        output_text.text = (change.value == 0) ? "Looking Glass 32-Inch Display" : "Looking Glass 65-Inch Display";
+
+    }
+
+    public void setAssistantType(int type)
+    {
+        if (type == 0)
+        {
+            selectedVersion = 0;
+        }
+        if (type == 1)
+        {
+            selectedVersion = 1;
+        }
 
     }
 
@@ -57,10 +76,8 @@ public class SwitchCamera : MonoBehaviour
     private void Cam_1()
     {
         small_cam.SetActive(true);
-        //small_NPC.SetActive(true);
         large_cam.SetActive(false);
-        //large_NPC.SetActive(false);
-        //my_manager.resultTarget = small_NPC;
+
         large_NPC.Destroy();
         my_manager.setNPC(small_NPC);
     }
@@ -68,9 +85,8 @@ public class SwitchCamera : MonoBehaviour
     private void Cam_2()
     {
         small_cam.SetActive(false);
-        // small_NPC.SetActive(false);
         large_cam.SetActive(true);
-        //  large_NPC.SetActive(true);
+
         small_NPC.Destroy();
         my_manager.setNPC(large_NPC);
 

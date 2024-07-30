@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using Microsoft.CognitiveServices.Speech;
 using System.Collections;
 using System.Threading.Tasks;
+using System.IO;
 
 public class Whisper1 : MonoBehaviour
 {
@@ -25,6 +26,7 @@ public class Whisper1 : MonoBehaviour
     private bool isListening = false;
     private bool keywordDetected = false;
     private readonly string keyword = "Hi Vivi"; // The keyword to listen for
+    private string modelFilePath;
 
     private void Start()
     {
@@ -44,7 +46,23 @@ public class Whisper1 : MonoBehaviour
             startRecoButton.onClick.AddListener(StartListening);
         }
 
-        // replace with working key
+        // Handle the model file path
+        string modelFile = "669dc1cf-9942-41f9-baa5-273e674e71ce.table";
+        string persistentFilePath = Path.Combine(Application.persistentDataPath, modelFile);
+
+        if (!File.Exists(persistentFilePath))
+        {
+            Debug.Log("Model file not in Persistent path");
+            string streamingAssetPath = Path.Combine(Application.streamingAssetsPath, modelFile);
+
+            // Load from StreamingAssets and copy to persistent data path
+            File.Copy(streamingAssetPath, persistentFilePath);
+            Debug.Log("Model file copied to Persistent path");
+        }
+
+        modelFilePath = persistentFilePath;
+
+        // Initialize speech configuration
         speechConfig = SpeechConfig.FromSubscription(Key.subscriptionKey, Key.region);
     }
 
@@ -82,11 +100,8 @@ public class Whisper1 : MonoBehaviour
 
     public async Task ContinuousRecognitionWithKeywordSpottingAsync()
     {
-        // replace with your model
-        var modelFile = @"669dc1cf-9942-41f9-baa5-273e674e71ce.table";
-        var modelFilePath = string.Format(@"Assets/StreamingAssets/{0}", modelFile);
-        var model = KeywordRecognitionModel.FromFile(modelFilePath);
 
+        var model = KeywordRecognitionModel.FromFile((string)modelFilePath);
         // Creates a speech recognizer using microphone as audio input.
         using (var recognizer = new SpeechRecognizer(speechConfig))
         {
@@ -113,6 +128,7 @@ public class Whisper1 : MonoBehaviour
                 {
                     Debug.Log($"RECOGNIZED KEYWORD: Text={e.Result.Text}");
                     Debug.Log("Keyword recognized, waiting for command...");
+                    message = "Keyword recognized...";
                     keywordDetected = true; // Set the flag when keyword is recognized
                 }
                 else if (result.Reason == ResultReason.RecognizedSpeech)
